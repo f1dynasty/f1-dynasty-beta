@@ -11,5 +11,11 @@
       "bytes": 2432176,
       "sha256": "1d23256310fb27f4d4f90ca04b479696f599c49831207192235b808e0160eaf5"
     }
+  },
+  "privacy": {
+    "file": "approved-privacy.html",
+    "bytes": 4266,
+    "sha256": "2292b68898fddef09faa8c19e6f3b7b0671a64f99134c8f7edb7990cc74e9db6",
+    "publicPath": "privacy.html"
   }
 }
