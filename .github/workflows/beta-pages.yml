@@ -1,0 +1,66 @@
+name: Deploy isolated beta (manual approval only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type beta.f1dynasty.com after owner launch approval
+        required: true
+        type: string
+      presentation:
+        description: Verified 3D candidate or current-core Classic rollback
+        required: true
+        default: 3d
+        type: choice
+        options:
+          - 3d
+          - classic
+permissions:
+  contents: read
+concurrency:
+  group: isolated-beta-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.repository == 'f1dynasty/f1-dynasty-beta' && inputs.confirmation == 'beta.f1dynasty.com'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and unpack the prebuilt static archive (no game build)
+        env:
+          BETA_PRESENTATION: ${{ inputs.presentation }}
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,zipfile
+          mode=os.environ['BETA_PRESENTATION']
+          assert mode in ('3d','classic')
+          package=json.load(open('package-checksums.json'))['packages'][mode]
+          archive=pathlib.Path(package['file'])
+          assert hashlib.sha256(archive.read_bytes()).hexdigest()==package['sha256']
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None
+              for name in z.namelist():
+                  assert not name.startswith('/') and '..' not in pathlib.PurePosixPath(name).parts
+              z.extractall('site')
+          PY
+          node - <<'NODE'
+          const fs=require('fs'),crypto=require('crypto'),assert=require('assert/strict');
+          const m=JSON.parse(fs.readFileSync('site/beta-manifest.json'));
+          assert.equal(m.hosting.domain,'beta.f1dynasty.com');
+          assert(m.hosting.cloudDisabled && m.hosting.externalNetworkBlocked);
+          assert.equal(fs.readFileSync('site/CNAME','utf8').trim(),'beta.f1dynasty.com');
+          for(const f of m.files){const b=fs.readFileSync('site/'+f.path);assert.equal(b.length,f.bytes);assert.equal(crypto.createHash('sha256').update(b).digest('hex'),f.sha256);}
+          NODE
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy only this repository's Pages site
+        id: deployment
+        uses: actions/deploy-pages@v4
