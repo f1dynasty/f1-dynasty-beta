@@ -48,6 +48,13 @@ jobs:
               for name in z.namelist():
                   assert not name.startswith('/') and '..' not in pathlib.PurePosixPath(name).parts
               z.extractall('site')
+          # Owner-approved privacy page; original game ZIPs remain unchanged.
+          policy=json.load(open('package-checksums.json'))['privacy']
+          assert policy['file']=='approved-privacy.html' and policy['publicPath']=='privacy.html'
+          policy_bytes=pathlib.Path(policy['file']).read_bytes()
+          assert len(policy_bytes)==policy['bytes']
+          assert hashlib.sha256(policy_bytes).hexdigest()==policy['sha256']
+          pathlib.Path('site/privacy.html').write_bytes(policy_bytes)
           PY
           node - <<'NODE'
           const fs=require('fs'),crypto=require('crypto'),assert=require('assert/strict');
