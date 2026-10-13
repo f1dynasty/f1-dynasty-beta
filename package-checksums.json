@@ -1,0 +1,15 @@
+{
+  "version": "3.1.6-beta.1",
+  "packages": {
+    "3d": {
+      "file": "web-beta-3.1.6-beta.1.zip",
+      "bytes": 2432216,
+      "sha256": "6c7644150962a91f49ebc3cea76fd7c24133f020d7c75f6520daf1155cd9f6e6"
+    },
+    "classic": {
+      "file": "classic-rollback-3.1.6-beta.1.zip",
+      "bytes": 2432176,
+      "sha256": "1d23256310fb27f4d4f90ca04b479696f599c49831207192235b808e0160eaf5"
+    }
+  }
+}
